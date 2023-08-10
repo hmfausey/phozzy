@@ -18,4 +18,6 @@ The attenuate function can be used to apply the transmission function  directly 
 The build_spectrum module pulls together the power_law, extinction, and attenuation modules to create a spectrum that accounts for both effects.
 The build function allows the user to input a desired wavelegth range and normalization wavelength, as well as parameter inputs for the normalization, spectral index, wavelength, and extinction, to create a spectrum and return it to the user.
 
-
+## filters
+The filters module determines the flux measurement for a set of photometric bands given by the user.
+In particular, the filter_observations function take a spectrum, the set of filter edges (in wavelength), whether noise should be included, and the statistical uncertainty and instrumental noise values desired by the user.
