@@ -27,11 +27,11 @@ def get_filter_centers(filter_edges):
          #filter_centers -- array, centers of each filter
          
     #Initialize array for filter centers
-    filter_centers = np.zeros(len(filter_edges)-1)
+    filter_centers = np.zeros(len(filter_edges))
     
     #Calculate filter centers
     for i in range(len(filter_centers)):
-        filter_centers[i] = (filter_edges[i] + filter_edges[i+1])/2
+        filter_centers[i] = (filter_edges[i][0] + filter_edges[i][-1])/2
     
     return filter_centers
     
