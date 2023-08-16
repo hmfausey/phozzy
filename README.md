@@ -21,3 +21,6 @@ The build function allows the user to input a desired wavelegth range and normal
 ## filters
 The filters module determines the flux measurement for a set of photometric bands given by the user.
 In particular, the filter_observations function take a spectrum, the set of filter edges (in wavelength), whether noise should be included, and the statistical uncertainty and instrumental noise values desired by the user.
+
+## create_data_set
+The create_data_set module creates a sample of GRBs by randomly generating GRB parameters and initial guesses, and determining the corresponding photometric band fluxes and uncertianties. It then saves these values to text files that can be pulled from by the fitting and analysis modules to compare with the fitting results to esimate performance.
