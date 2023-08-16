@@ -21,8 +21,9 @@ import numpy as np
 def get_filter_centers(filter_edges):
     ##Determines the centers of each filter given the filter edges
      #Inputs:
-         #filter_edges -- array, edges of filters from shortest to longest 
-          #wavelength
+         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
+          #each filter in order 
+          #(eg. filter_edges = [[lower_1, upper_1], [lower_2, upper_2], [lower_3, upper_3]])
      #Returns:
          #filter_centers -- array, centers of each filter
          
