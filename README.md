@@ -24,3 +24,6 @@ In particular, the filter_observations function take a spectrum, the set of filt
 
 ## create_data_set
 The create_data_set module creates a sample of GRBs by randomly generating GRB parameters and initial guesses, and determining the corresponding photometric band fluxes and uncertianties. It then saves these values to text files that can be pulled from by the fitting and analysis modules to compare with the fitting results to esimate performance.
+
+## d_L_calc
+the d_L_calc module estimates the luminosity distance of a GRB at redshift z assuming a flat Universe. It is used by the create_data_set module to estimate the flux of a GRB seen from different redshifts. See https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H/abstract for overview.
