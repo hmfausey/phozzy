@@ -20,25 +20,28 @@ import numpy as np
 H0 = 67.36 #(km/(sMpc))
 Omega_M = 0.3166
 Omega_Lam = 0.6847
-Omega_k = -0.011
 c = 2.998*10**5 #km/s
-d_H = c/H0 #Mpc
+d_H = c/H0 #Mpc -- hubble distance
 
 ####################
 #FUNCTIONS
 ####################
 
 def d_L(z):
-    ##Luminosity Distance (see Peebles 2013 (pgs 310-321) or https://ned.ipac.caltech.edu/level5/Hogg/Hogg4.html)
+    ##Luminosity Distance (Weinberg 1972, pp. 420-424; Weedman 1986, pp. 60-62, or https://ned.ipac.caltech.edu/level5/Hogg/Hogg7.html)
     return (1+z)*d_M(z)
 
 def d_M(z):
+    ##Transverse comoving distance -- equal to comoving distance for flat universe (see https://ned.ipac.caltech.edu/level5/Hogg/Hogg5.html)
     return d_C(z)
 
 def d_C(z):
+    ##Comoving distance (see Peebles 2013 (pgs 310-321) or https://ned.ipac.caltech.edu/level5/Hogg/Hogg4.html)
+     #Performs integration of E(z) over z, and then multiplies by d_H(the hubble distance)
     step = 0.001
     zrange = np.arange(0, z+step, step)
-    func = 1/np.sqrt(Om*(1+zrange)**3 + Ol)
+    #For the function below, we set Omega_k to 0 since the Universe is essentially flat
+    func = 1/np.sqrt(Omega_M*(1+zrange)**3 + Omega_Lam)
     
     integration = 0
     
@@ -47,11 +50,3 @@ def d_C(z):
         integration += 0.5*(func[i] + func[i+1])*step
     
     return d_H*integration
-
-'''
-peak = np.exp(6.35065)
-
-ans = peak*(((d_L(5))**2)/((d_L(6))**2))
-
-print(np.log(ans))
-'''
