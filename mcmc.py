@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_prior = 'uniform', Ebv_prior = 'clever', Ebv_fitting = True, extinction_law = 'smc'):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_prior = 'uniform', Ebv_prior = 'clever', Ebv_fitting = True, extinction_law = 'smc', parallel = True, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -55,7 +55,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
         #save_string -- desired string for all input and output data
         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
          #each filter in order 
-        #z_prior -- string, desired redshift prior. Options are 'uniform' or
+        #z_prior -- str, desired redshift prior. Options are 'uniform' or
          #'expected'. 'uniform' is the default and is highly suggested
         #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
          #'basic', and 'clever'. (default 'clever')
@@ -64,6 +64,10 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
         #extinction_law -- string, extinction law model to be used. Choices
          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
          #cloud) or 'mw' (for milky way). 'smc' default
+        #parallel -- bool, indicates whether the user would like to
+         #parellalize the code. True default
+        #cpu_num -- int, number of CPUs to be used when parellalizing the 
+         #fit
      #Returns:
          #None
         
@@ -95,10 +99,21 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
     #Calculate normalization wavelength with filter edges
     
     #Using multiprocessing tool with 3/4 of all cpus in use (rounded down)
-    with mp.Pool(processes = int(3/4 * os.cpu_count())) as pool:
-        #set up sampler
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law), pool = pool)
+    if parallel:
+        with mp.Pool(processes = cpu_num) as pool:
+            #set up sampler
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law), pool = pool)
+            
+            print("Running burn-in...")
+            p0, _, _ = sampler.run_mcmc(p0, burnin)
+            
+            sampler.reset()
         
+            print("Running production...")
+            sampler.run_mcmc(p0, produc)
+    else:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law))
+            
         print("Running burn-in...")
         p0, _, _ = sampler.run_mcmc(p0, burnin)
         
@@ -170,6 +185,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
     #Create corner plot of posteriors of each parameter and save it
     figure = corner.corner(samples, labels=labels)
     figure.savefig(save_string+"_corner_plot.png")
+    plt.show(figure)
     plt.close(figure)    
 
 def model(params, filter_edges, Ebv_fitting, extinction_law):
@@ -250,13 +266,3 @@ def lnprob(params, y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extin
     
     return -np.inf
     
-  
-    
-x = np.array([0.6, 0.95, 1.5])
-y = np.array([0, 15, 95])
-yerr = np.sqrt(y) + np.ones(len(y))
-initial_guess = np.array([90, 0.8, 4, 0.1])
-GRB_params = initial_guess
-save_string = str("Test")
-filter_edges = np.array([[0.5,0.7],[0.7,1.2],[1.2,1.8]])
-mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges)
