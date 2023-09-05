@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_prior = 'uniform', Ebv_prior = 'clever', Ebv_fitting = True, extinction_law = 'smc', parallel = True, cpu_num = int(3/4*os.cpu_count())):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, index, filter_edges, nwalkers=50, burnin=250, produc=500, z_prior = 'uniform', Ebv_prior = 'clever', Ebv_fitting = True, extinction_law = 'smc', parallel = True, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -53,8 +53,13 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
         #GRB_params -- numpy array, the true values for each GRB parameter. 
          #Used for plotting and comparison purposes
         #save_string -- desired string for all input and output data
+        #index -- int, run number. Used for saving results
         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
          #each filter in order 
+        #nwalkers -- int, the number of walkers used by the MCMC fitting method
+         #(default 50)
+        #burnin -- int, number of steps in the burn-in phase (default 250)
+        #produc -- int, number of steps in the production phase (default 500)
         #z_prior -- str, desired redshift prior. Options are 'uniform' or
          #'expected'. 'uniform' is the default and is highly suggested
         #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
@@ -72,9 +77,9 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
          #None
         
     #set number of walkers, and lengths of burn-in and production chains
-    nwalkers = 50
-    burnin = 250
-    produc = 500
+    nwalkers = nwalkers
+    burnin = burnin
+    produc = produc
     
     #dimensions set to number of parameters
     ndim = len(initial_guess)
@@ -130,7 +135,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
         for j in range(nwalkers):
             plt.plot(xaxis, sampler.chain[j, :, i])
         plt.title("Paramter "+param_names[i])
-        plt.savefig(save_string+"_MCMC_produc_"+param_names[i]+".png")
+        plt.savefig(save_string+"_MCMC_produc_"+str(index)+"_"+param_names[i]+".png")
         plt.close()
     
     #plot photometric band measurements with error bars along with the original 
@@ -174,17 +179,17 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, z_pri
         plt.plot(lam_obs, spectrum, "c-", alpha = 0.3)
     
     #Save
-    plt.savefig(save_string+"_walker_plot.png")
+    plt.savefig(save_string+"_results_"+str(index)+"_walker_plot.png")
     plt.show()
     plt.close()
     
     #Save 2-D array of parameter results and original values to text file (to
      #be used for analysis)
-    np.savetxt(save_string+"_MCMC_testing_datastore.txt", datastore, delimiter = ' ')
+    np.savetxt(save_string+"_results_"+str(index)+"_datastore.txt", datastore, delimiter = ' ')
     
     #Create corner plot of posteriors of each parameter and save it
     figure = corner.corner(samples, labels=labels)
-    figure.savefig(save_string+"_corner_plot.png")
+    figure.savefig(save_string+"_results_"+str(index)+"_corner_plot.png")
     plt.show(figure)
     plt.close(figure)    
 

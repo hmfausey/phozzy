@@ -33,7 +33,7 @@ if __name__ == "__main__":
     GRB_params = initial_guess
     save_string = str("Test")
     filter_edges = np.array([[0.5,0.7],[0.7,1.2],[1.2,1.8]])
-    mcmc.mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, parallel = False)
+    mcmc.mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, parallel = False, nwalkers = 100, burnin = 200, produc = 400)
 
 
 
