@@ -205,6 +205,9 @@ def model(params, filter_edges, Ebv_fitting, extinction_law):
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
           #cloud) or 'mw' (for milky way). 'smc' default
+     #Returns:
+         #filter_vals -- numpy array, the flux measurements associated with
+          #each filter given the current model parameters
     
     #Determine whether E_{B-V} is a free parameter
     if Ebv_fitting:
@@ -223,13 +226,48 @@ def model(params, filter_edges, Ebv_fitting, extinction_law):
     return filter_vals
 
 def chi_squared(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
+    ##Calculates the chi-squared value for a fit
+     #Inputs:
+         #params -- numpy array, the current parameters
+         #y -- numpy array, the measured flux values in each filter for the 
+          #current GRB
+         #yerr -- numpy array, the uncertainties associated with each filter
+          #for the current GRB
+         #filter_edges -- 2D numpy array contains the upper and lower edges of 
+          #each filter in order 
+         #Ebv_fitting -- bool, indicates whether E_{B-V} is a free parameter
+         #extinction_law -- string, extinction law model to be used. Choices
+          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
+          #cloud) or 'mw' (for milky way). 'smc' default
+     #Returns:
+         #chi_2 -- float, the chi-squared value for the current fit to the 
+          #current data
+    
+    #Get the model fluxes associated with the current parameter values
     model_filters = model(params, filter_edges, Ebv_fitting, extinction_law)
     
+    #calculated the chi-squared of the fit to the data
     chi_2 = np.sum(((y - model_filters)/(yerr))**2)
     
     return chi_2
 
 def lnlikelihood(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
+    ##Calculates the log-likelihood for the current fit
+     #Inputs:
+         #params -- numpy array, the current parameters
+         #y -- numpy array, the measured flux values in each filter for the 
+          #current GRB
+         #yerr -- numpy array, the uncertainties associated with each filter
+          #for the current GRB
+         #filter_edges -- 2D numpy array contains the upper and lower edges of 
+          #each filter in order 
+         #Ebv_fitting -- bool, indicates whether E_{B-V} is a free parameter
+         #extinction_law -- string, extinction law model to be used. Choices
+          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
+          #cloud) or 'mw' (for milky way). 'smc' default
+     #Returns:
+         #-chi_2/2 -- float, the Bayesian log-likelihood for the current fit
+         
     chi2 = chi_squared(params, y, yerr, filter_edges, Ebv_fitting, extinction_law)
     
     return -chi2/2

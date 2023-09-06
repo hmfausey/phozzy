@@ -4,8 +4,7 @@ Created on Fri Dec 23 20:52:50 2022
 
 @author: hmfausey
 
-phozzy is the front end of the program, where I define values for all input
-values for the build and fit of the simulated data
+phozzy runs the enitre simulation from start to finish
 """
 
 ##############################################################################

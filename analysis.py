@@ -57,7 +57,7 @@ def import_results(num, walkers, save_string):
         #Using savestring to identify the correct set of runs, and i to pull
          #data from each individual run and add it to each corresponding 
          #parameter array
-        filestring = save_string+str(i)+"_datastore.txt"
+        filestring = save_string+"_"+str(i)+"_datastore.txt"
         
         datastore = np.loadtxt(filestring, delimiter = ' ')
         
