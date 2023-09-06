@@ -28,7 +28,7 @@ import d_L_calc as dcal
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def build_set(num, filter_edges, save_string, extinction_law = 'smc', z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, uncertainty = 0.05, sig_noise = 3):
+def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0):
     ##Saves a set of GRB parameters, the corresponding photometric band 
      #measurements (with error), uncertainties, and initial guesses to be used
      #later for fitting and analysis. Photometric band measurements are
@@ -46,6 +46,8 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', z_input = 
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
           #cloud) or 'mw' (for milky way). 'smc' default
+         #uncertainty -- float, statistical uncertainty (default 0.05)
+         #sig_noise -- float, 1-sigma instrument noise (default 3 micro-Jansky)
          #z_input -- string, desired input redshift distribution. Options are 
           #'uniform' or 'expected' (default 'uniform')
          #z_prior -- string, desired redshift prior. Options are 'uniform' or
@@ -56,14 +58,17 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', z_input = 
           #'basic', and 'evolving'. (default 'evolving')
          #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
           #parameter or not. (default True)
-         #uncertainty -- float, statistical uncertainty (default 0.05)
-         #sig_noise -- float, 1-sigma instrument noise (default 3 micro-Jansky)
+         #upper_limit -- int, specifies whether the user would like upper limits
+          #applied to the evolving extinction prior and which one to use. 0 
+          #corresponds to no upper limit while 1 and 2 correspond to upper
+          #limit 1 (less constraining) and upper limit 2 (more constraining) 
+          #from the paper (see url for more details)
      #Returns:
          #None
             
     #Initialize filter observations and uncertainties        
-    filter_obs = np.zeros((num, len(filter_edges)-1))
-    uncertainties = np.zeros((num, len(filter_edges)-1))
+    filter_obs = np.zeros((num, len(filter_edges)))
+    uncertainties = np.zeros((num, len(filter_edges)))
     
     if Ebv_fitting:
         #Determine if there are 3 or 4 free parameters
@@ -106,63 +111,78 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', z_input = 
        
         #Get value for E_{b-v} if applicable(depends on z)
         if Ebv_fitting:
-            #Different E_{b-v} values depending on the prior
-            if Ebv_input == 'basic':
+            #Different E_{b-v} values depending on the input distribution
+            if Ebv_input == 'none':
+                Ebvval = 0
+            elif Ebv_input == 'uniform':
+                Ebvval = random.uniform(0, 3)
+            elif Ebv_input == 'basic':
                 lambd = 4.28032
                 Ebvval = random.expovariate(lambd)
             elif Ebv_input == 'evolving':
                 if zval < 2:
                     constant = 6.9
                     Ebvval = random.expovariate(constant)
+                    #Inculuding considerations for upper limits
+                    if Ebvval > 2.05 and (upper_limit==1 or upper_limit==2):
+                        while Ebvval > 2.05:
+                            Ebvval = random.expovariate(constant)
                 elif 2 <= zval < 4:
                     constant = 12.6
                     Ebvval = random.expovariate(constant)
-                    while Ebvval > 1.02:
-                        Ebvval = random.expovariate(constant)
+                    if Ebvval > 1.02 and (upper_limit == 1 or upper_limit == 2):
+                        while Ebvval > 1.02:
+                            Ebvval = random.expovariate(constant)
                 elif zval > 4:
                     constant = 36.2
                     Ebvval = random.expovariate(constant)
-                    while Ebvval > 0.17:
-                        Ebvval = random.expovariate(constant)
-                    
-            elif Ebv_input == 'none':
-                Ebvval = 0
+                    if Ebvval > 0.17 and upper_limit==2:
+                        while Ebvval > 0.17:
+                            Ebvval = random.expovariate(constant)
+                    elif Ebvval > 0.34 and upper_limit==1:
+                        while Ebvval > 0.34:
+                            Ebvval = random.expovariate(constant)
             else:
-                raise Exception("Invalid E_{b-v} input distribution. Choices are 'uniform', 'basic', 'evolving' or 'none' and must be a string")
-            
-            if Ebv_prior == 'basic':
+                raise Exception("Invalid E_{b-v} input distribution. Choices are 'uniform', 'basic', or 'evolving'  or 'none' and must be a string")
+            #Different E_{B-V} values depending on the prior
+            if Ebv_prior == 'uniform':
+                Ebvguess = random.uniform(0, 3)
+            elif Ebv_prior == 'basic':
                 lambd = 4.28032
-                Ebvguess = random.expovariate(lambd)
-                
+                Ebvguess = random.expovariate(lambd)   
             elif Ebv_prior == 'evolving':
                 if zval < 2:
                     constant = 6.9
                     Ebvguess = random.expovariate(constant)
+                    #Including considerations for upper limits
+                    if Ebvguess > 2.05 and(upper_limit==1 or upper_limit==2):
+                        while Ebvguess > 2.05:
+                            Ebvguess = random.expovariate(constant)
                 elif 2 <= zval < 4:
                     constant = 12.6
                     Ebvguess = random.expovariate(constant)
-                    while Ebvguess > 1.02:
-                        Ebvguess = random.expovariate(constant)
+                    if Ebvguess > 1.02 and (upper_limit==1 or upper_limit==2):
+                        while Ebvguess > 1.02:
+                            Ebvguess = random.expovariate(constant)
                 elif zval > 4:
                     constant = 36.2
                     Ebvguess = random.expovariate(constant)
-                    while Ebvguess > 0.17:
-                        Ebvguess = random.expovariate(constant)
-                        
-            elif Ebv_prior == 'unifrom':
-                Ebvguess = random.uniform(0,3)
+                    if Ebvguess > 0.17 and upper_limit==2:
+                        while Ebvguess > 0.17:
+                            Ebvguess = random.expovariate(constant)
+                    elif Ebvguess > 0.34 and upper_limit==1:
+                        while Ebvguess > 0.34:
+                            Ebvguess = random.expovariate(constant)
             else:
                 raise Exception("Invalid E_{b-v} prior distribution. Choices are 'uniform', 'basic', or 'evolving' and must be a string")
             
             #Save GRB original parameters
             OG_params = np.array([Fval, betaval, zval, Ebvval])
-            
             #Build the spectrum based on the GRB parameters
             lam_obs, spectrum = build_spectrum.build(filter_edges, Fval, betaval, zval, Ebvval, extinction_law=extinction_law)
             #determine filter values (perturbed according to uncertainty) and 
              #their corresponding error
             _, filter_vals, quadrature = filters.filter_observations(lam_obs, spectrum, filter_edges, noisy=True, uncertainty=uncertainty, sig_noise=sig_noise)
-            
             #If the reddest filter is above the 5-sigma detection limit, keep
              #the current filters and uncertainties
             if filter_vals[-1] >= 5*sig_noise:

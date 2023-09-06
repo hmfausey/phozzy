@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, index, filter_edges, nwalkers=50, burnin=250, produc=500, z_prior = 'uniform', Ebv_prior = 'clever', Ebv_fitting = True, extinction_law = 'smc', parallel = True, cpu_num = int(3/4*os.cpu_count())):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, parallel = False, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -53,26 +53,25 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, index, filter_edges
         #GRB_params -- numpy array, the true values for each GRB parameter. 
          #Used for plotting and comparison purposes
         #save_string -- desired string for all input and output data
-        #index -- int, run number. Used for saving results
         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
          #each filter in order 
         #nwalkers -- int, the number of walkers used by the MCMC fitting method
          #(default 50)
         #burnin -- int, number of steps in the burn-in phase (default 250)
         #produc -- int, number of steps in the production phase (default 500)
-        #z_prior -- str, desired redshift prior. Options are 'uniform' or
-         #'expected'. 'uniform' is the default and is highly suggested
-        #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
-         #'basic', and 'clever'. (default 'clever')
-        #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
-         #parameter or not. (default True)
         #extinction_law -- string, extinction law model to be used. Choices
          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
          #cloud) or 'mw' (for milky way). 'smc' default
+        #z_prior -- str, desired redshift prior. Options are 'uniform' or
+         #'expected'. 'uniform' is the default and is highly suggested
+        #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
+         #'basic', and 'evolving'. (default 'evolving')
+        #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
+         #parameter or not. (default True)
         #parallel -- bool, indicates whether the user would like to
-         #parellalize the code. True default
+         #parellalize the code. (default False)
         #cpu_num -- int, number of CPUs to be used when parellalizing the 
-         #fit
+         #fit (default floor(3/4 * cpu_count))
      #Returns:
          #None
         
@@ -135,7 +134,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, index, filter_edges
         for j in range(nwalkers):
             plt.plot(xaxis, sampler.chain[j, :, i])
         plt.title("Paramter "+param_names[i])
-        plt.savefig(save_string+"_MCMC_produc_"+str(index)+"_"+param_names[i]+".png")
+        plt.savefig(save_string+"_"+param_names[i]+".png")
         plt.close()
     
     #plot photometric band measurements with error bars along with the original 
@@ -179,29 +178,48 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, index, filter_edges
         plt.plot(lam_obs, spectrum, "c-", alpha = 0.3)
     
     #Save
-    plt.savefig(save_string+"_results_"+str(index)+"_walker_plot.png")
+    plt.savefig(save_string+"_walker_plot.png")
     plt.show()
     plt.close()
     
     #Save 2-D array of parameter results and original values to text file (to
      #be used for analysis)
-    np.savetxt(save_string+"_results_"+str(index)+"_datastore.txt", datastore, delimiter = ' ')
+    np.savetxt(save_string+"_datastore.txt", datastore, delimiter = ' ')
     
     #Create corner plot of posteriors of each parameter and save it
     figure = corner.corner(samples, labels=labels)
-    figure.savefig(save_string+"_results_"+str(index)+"_corner_plot.png")
+    figure.savefig(save_string+"_corner_plot.png")
     plt.show(figure)
     plt.close(figure)    
+    
+    return None
 
 def model(params, filter_edges, Ebv_fitting, extinction_law):
+    ##Code model. Determines expected photometric band measurements based on 
+     #current parameters
+     #Inputs:
+         #params -- numpy array, the current parameters
+         #filter_edges -- 2D numpy array contains the upper and lower edges of 
+          #each filter in order 
+         #Ebv_fitting -- bool, indicates whether E_{B-V} is a free parameter
+         #extinction_law -- string, extinction law model to be used. Choices
+          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
+          #cloud) or 'mw' (for milky way). 'smc' default
+    
+    #Determine whether E_{B-V} is a free parameter
     if Ebv_fitting:
+        #If it is, determine band measurements according to current E_{B-V}
+         #value (along with the other parameters)
         f_0, beta, z, E_bv = params
         lam_obs, spectrum = build_spectrum.build(filter_edges, f_0, beta, z, E_bv, extinction_law=extinction_law)
         filter_vals, _, _ = filters.filter_observations(lam_obs, spectrum, filter_edges)
     else:
+        #If not, set E_{B-V} to 0 and determine result using other parameter 
+         #values
         f_0, beta, z = params
         lam_obs, spectrum = build_spectrum.build(filter_edges, f_0, beta, z, 0)
         filter_vals, _, _ = filters.filter_observations(lam_obs, spectrum, filter_edges)
+        #Return model filter values
     return filter_vals
 
 def chi_squared(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
@@ -226,7 +244,7 @@ def lnprior(params, z_prior, Ebv_prior, Ebv_fitting):
             if Ebv_prior == 'basic':
                 Ebv_norm = 4.28032
                 Ebv_prior = Ebv_norm * np.exp(-Ebv_norm * E_bv)
-            elif Ebv_prior == 'clever':
+            elif Ebv_prior == 'evolving':
                 if z < 2:
                     constant = 6.9
                     if E_bv > 2.05:
@@ -243,7 +261,7 @@ def lnprior(params, z_prior, Ebv_prior, Ebv_fitting):
                 Ebv_prior = constant * np.exp(-constant * E_bv)
 
             else:
-                raise Exception("Invalid E_{b-v} prior. Ebv_prior must be either 'basic', 'clever', or 'uniform' and must be a string.")
+                raise Exception("Invalid E_{b-v} prior. Ebv_prior must be either 'basic', 'evolving', or 'uniform' and must be a string.")
         else:
             return -np.inf
     else:
