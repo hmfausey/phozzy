@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, parallel = False, cpu_num = int(3/4*os.cpu_count())):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -68,6 +68,11 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
          #'basic', and 'evolving'. (default 'evolving')
         #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
          #parameter or not. (default True)
+        #upper_limit -- int, specifies whether the user would like upper limits
+         #applied to the evolving extinction prior and which one to use. 0 
+         #corresponds to no upper limit while 1 and 2 correspond to upper
+         #limit 1 (less constraining) and upper limit 2 (more constraining) 
+         #from the paper (see url for more details). (default 0)
         #parallel -- bool, indicates whether the user would like to
          #parellalize the code. (default False)
         #cpu_num -- int, number of CPUs to be used when parellalizing the 
@@ -106,7 +111,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
     if parallel:
         with mp.Pool(processes = cpu_num) as pool:
             #set up sampler
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law), pool = pool)
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, upper_limit, extinction_law), pool = pool)
             
             print("Running burn-in...")
             p0, _, _ = sampler.run_mcmc(p0, burnin)
@@ -116,7 +121,7 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
             print("Running production...")
             sampler.run_mcmc(p0, produc)
     else:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law))
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args = (y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, upper_limit, extinction_law))
             
         print("Running burn-in...")
         p0, _, _ = sampler.run_mcmc(p0, burnin)
@@ -238,7 +243,7 @@ def chi_squared(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
          #Ebv_fitting -- bool, indicates whether E_{B-V} is a free parameter
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
-          #cloud) or 'mw' (for milky way). 'smc' default
+          #cloud) or 'mw' (for milky way).
      #Returns:
          #chi_2 -- float, the chi-squared value for the current fit to the 
           #current data
@@ -264,7 +269,7 @@ def lnlikelihood(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
          #Ebv_fitting -- bool, indicates whether E_{B-V} is a free parameter
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
-          #cloud) or 'mw' (for milky way). 'smc' default
+          #cloud) or 'mw' (for milky way).
      #Returns:
          #-chi_2/2 -- float, the Bayesian log-likelihood for the current fit
          
@@ -272,53 +277,109 @@ def lnlikelihood(params, y, yerr, filter_edges, Ebv_fitting, extinction_law):
     
     return -chi2/2
 
-def lnprior(params, z_prior, Ebv_prior, Ebv_fitting):
+def lnprior(params, z_prior, Ebv_prior, Ebv_fitting, upper_limit):
+    ##determines the probability of the current parameters according to the
+     #priors
+     #Inputs:
+         #params -- numpy array, the current parameters
+         #z_prior -- str, desired redshift prior. Options are 'uniform' or
+          #'expected'. 'uniform' is the default and is highly suggested
+         #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
+          #'basic', and 'evolving'.
+         #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
+          #parameter or not.
+         #upper_limit -- int, specifies whether the user would like upper limits
+          #applied to the evolving extinction prior and which one to use. 0 
+          #corresponds to no upper limit while 1 and 2 correspond to upper
+          #limit 1 (less constraining) and upper limit 2 (more constraining) 
+          #from the paper (see url for more details).
+     #Returns:
+         #float, prior associated with the current parameters
+    
+    #If Ebv is a free parameter, need to determine it's prior
     if Ebv_fitting:
         f_0, beta, z, E_bv = params
         #figure out extinction prior if applicable
 
         if E_bv >= 0:
-
-            if Ebv_prior == 'basic':
+            #Determine the prior according to uniform, basic or evolving 
+             #distribution
+            if Ebv_prior == 'uniform':
+                Ebv_prior = 1.0
+            elif Ebv_prior == 'basic':
                 Ebv_norm = 4.28032
                 Ebv_prior = Ebv_norm * np.exp(-Ebv_norm * E_bv)
             elif Ebv_prior == 'evolving':
                 if z < 2:
                     constant = 6.9
-                    if E_bv > 2.05:
-                        return -np.inf
+                    if upper_limit == 1 or upper_limit == 2:
+                        if E_bv > 2.05:
+                            return -np.inf
                 elif 2 <= z < 4:
                     constant = 12.6
-                    if E_bv > 1.02:
-                        return -np.inf
+                    if upper_limit == 1 or upper_limit==2:
+                        if E_bv > 1.02:
+                            return -np.inf
                 elif z > 4:
                     constant = 36.2
-                    if E_bv > 0.17:
+                    if E_bv > 0.17 and upper_limit==2:
+                        return -np.inf
+                    elif E_bv > 0.34 and upper_limit==1:
                         return -np.inf
                     
                 Ebv_prior = constant * np.exp(-constant * E_bv)
 
             else:
                 raise Exception("Invalid E_{b-v} prior. Ebv_prior must be either 'basic', 'evolving', or 'uniform' and must be a string.")
+        #if Ebv is negative, return -inf
         else:
             return -np.inf
+    #if Ebv not a free parameter, set prior to 1
     else:
         f_0, beta, z = params
         Ebv_prior = 1.0
     
+    #Make sure other parameters have valid values
     if (f_0 > 0) and (0 < beta <= 2.5) and (0 < z < 25):
-        #spectral index prior
+        #spectral index prior (gaussian)
         mu = 0.7
         sig = 0.2
         beta_prior = 1/(sig*np.sqrt(2*PI)) * np.exp(-0.5*((beta - mu)/sig)**2)
-    
+        
+        #Put priors together then return the log-prior
         full_prior = beta_prior * Ebv_prior
         return np.log(full_prior)
     
+    #If one of the parameters has an invalid value, return -np.inf
     return -np.inf
 
-def lnprob(params, y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, extinction_law):
-    prior = lnprior(params, z_prior, Ebv_prior, Ebv_fitting)
+def lnprob(params, y, yerr, filter_edges, z_prior, Ebv_prior, Ebv_fitting, upper_limit, extinction_law):
+    ##lnprob is determines the overall probability of a solution by combining
+     #the prior and likelihood functions
+     #Inputs:
+         #params -- numpy array, array of parameter values
+         #y -- numpy array, constains the flux measurement for each photometric
+          #band
+         #yerr -- numpy array, constains the uncertainty on the flux
+          #measurement for each photometric band
+         #z_prior -- str, desired redshift prior. Options are 'uniform' or
+          #'expected'. 'uniform' is the default and is highly suggested
+         #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
+          #'basic', and 'evolving'. (default 'evolving')
+         #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
+          #parameter or not. (default True)
+         #upper_limit -- int, specifies whether the user would like upper limits
+          #applied to the evolving extinction prior and which one to use. 0 
+          #corresponds to no upper limit while 1 and 2 correspond to upper
+          #limit 1 (less constraining) and upper limit 2 (more constraining) 
+          #from the paper (see url for more details). (default 0)
+         #extinction_law -- string, extinction law model to be used. Choices
+          #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
+          #cloud) or 'mw' (for milky way).
+      #Returns:
+          #float, the log-probability of the current fitting solutions
+    
+    prior = lnprior(params, z_prior, Ebv_prior, Ebv_fitting, upper_limit)
     
     if np.isfinite(prior):
         prob = prior + lnlikelihood(params, y, yerr, filter_edges, Ebv_fitting, extinction_law)

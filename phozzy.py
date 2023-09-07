@@ -102,7 +102,7 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
         GRB_param_arr = GRB_params[i]
         
         #Run the MCMC fitting method
-        mcmc.mcmc(x, y, yerr, initial_guess, GRB_param_arr, result_string, filter_edges, nwalkers=nwalkers, burnin=burnin, produc=produc, extinction_law = extinction_law, z_prior = z_prior, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, parallel = parallel, cpu_num = cpu_num)
+        mcmc.mcmc(x, y, yerr, initial_guess, GRB_param_arr, result_string, filter_edges, nwalkers=nwalkers, burnin=burnin, produc=produc, extinction_law = extinction_law, z_prior = z_prior, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, upper_limit=Ebv_upper_limit, parallel = parallel, cpu_num = cpu_num)
 
     #Setup string for saving the analysis results
     analysis_string = save_string+"_results"

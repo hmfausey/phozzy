@@ -13,7 +13,8 @@ import phozzy
 
 import numpy as np
 
-##If
+##If you want to use parallelization, the main needs to be written as it is
+ #below, or run from the command line.
 
 if __name__ == "__main__":
     ##Define parameters for the simulation
