@@ -27,3 +27,15 @@ The create_data_set module creates a sample of GRBs by randomly generating GRB p
 
 ## d_L_calc
 the d_L_calc module estimates the luminosity distance of a GRB at redshift z assuming a flat Universe. It is used by the create_data_set module to estimate the flux of a GRB seen from different redshifts. See https://ui.adsabs.harvard.edu/abs/1999astro.ph..5116H/abstract for overview.
+
+## mcmc
+The mcmc module uses the emcee package (Foreman-Mackey et al., 2013; https://ui.adsabs.harvard.edu/abs/2013PASP..125..306F) to fit a set of photometric band measurements. It uses a Bayesian log-likelihood function and has multiple sets of priors, including uniform, basic, and evolving priors for the extinction, E_{B-V}, as well as the option for upper limits for the evolving extinction prior.
+
+## analysis
+The analysis module reads in the results of the mcmc fitting method and creates a 2D histogram of the input vs output redshift for all walkers of all runs of a simulation.
+
+## phozzy
+The phozzy module runs the entire simulation from start to finish using the create_data, mcmc, and analysis modules to create a set of simulated photometric band measurements, fit them, and interpret the results.
+
+## example_main
+phozzy come with an example main to show how to set up and run the code
