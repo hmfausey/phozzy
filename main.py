@@ -26,7 +26,7 @@ if __name__ == "__main__":
     save_string = 'test_run'
     
     #Number of GRBs to be simulated and fit
-    nGRBs = 500
+    nGRBs = 10
     
     phozzy.phozzy(nGRBs, filter_edges, save_string, parallel = True, nwalkers=50, burnin=250, produc=500)
 

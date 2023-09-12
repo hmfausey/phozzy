@@ -77,7 +77,11 @@ def import_results(num, walkers, save_string):
 
 def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cutoff, acc):
     ##Method creates an input vs output redshift density plot to visualize 
-     #results
+     #results. Determines base completeness(of all high-z GRBs how many are 
+     #correctly identified as high-z), purity(of all low-z GRBs, how many are
+     #correctly identified as low-z), and accuracy (of all high-z GRBs, how
+     #many estimated GRB redshifts are within +/- acc (in percent) of the input
+     #GRB redshift) for the run.
      #Inputs:
          #num -- int, number of runs
          #walkers -- int, number of walkers used by the mcmc method
@@ -130,3 +134,35 @@ def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cut
     plt.savefig(save_string+'_density_plot.pdf')
     plt.show()
     plt.close()
+    
+    #For statistics on each run
+    #Initialize arrays for low and high-z GRBs
+    num_low = 0
+    num_high = 0
+    #Initialize the rest to 0
+    complete = 0
+    pure = 0
+    accurate = 0
+    for i in range(len(z_in)):
+        if z_in[i] < highz_cutoff:
+            #For low redshift GRBs (z < high-z cutoff)
+            #Track number
+            num_low += 1
+            if z_out[i] < highz_cutoff:
+                #If output < high-z cutoff, add 1 for purity
+                pure += 1
+        else:
+            #For high-redshift GRBs( z >= high-z cutoff)
+            #Track number
+            num_high += 1
+            if z_out[i] >= highz_cutoff:
+                #If output > high-z cutoff, add 1 for completeness
+                complete += 1
+            if (z_in[i]*(1-acc)) <= z_out[i] <= (z_in[i]*(1+acc)):
+                #If z_out within desired accuracy limit, add 1 for accuracy
+                accurate += 1
+                
+    print("Completeness = ",complete/num_high)
+    print("Purity = ",pure/num_low)
+    print("Accuracy = ", accurate/num_high)
+            
