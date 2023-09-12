@@ -13,8 +13,8 @@ import phozzy
 
 import numpy as np
 
-##If you want to use parallelization, the main needs to be written as it is
- #below, or run from the command line.
+##If you want to use parallelization, the main function needs to be written as 
+ #it is below, or run from the command line.
 
 if __name__ == "__main__":
     ##Define parameters for the simulation
@@ -26,8 +26,10 @@ if __name__ == "__main__":
     save_string = 'test_run'
     
     #Number of GRBs to be simulated and fit
-    nGRBs = 10
+    nGRBs = 500
     
+    #If you want to run the code in parallel, set parallel=True in the phozzy
+     #function call
     phozzy.phozzy(nGRBs, filter_edges, save_string, parallel = True, nwalkers=50, burnin=250, produc=500)
 
 
