@@ -24,7 +24,7 @@ LAM_ALPHA = 0.121567 #in MICROmeters
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def import_results(num, walkers, save_string): 
+def import_results(num, walkers, save_string, Ebv_fitting = True): 
     ##Imports the results of all walkers from all runs and combines them into
      #arrays of input and output values
      #Inputs:
@@ -70,12 +70,16 @@ def import_results(num, walkers, save_string):
         z_in[walkers*i: walkers*(i+1)] = datastore[:,4]
         z_out[walkers*i: walkers*(i+1)] = datastore[:,5]
         
-        Ebv_in[walkers*i: walkers*(i+1)] = datastore[:,6]
-        Ebv_out[walkers*i: walkers*(i+1)] = datastore[:,7]
+        if Ebv_fitting:
+            Ebv_in[walkers*i: walkers*(i+1)] = datastore[:,6]
+            Ebv_out[walkers*i: walkers*(i+1)] = datastore[:,7]
     
-    return F_in, F_out, beta_in, beta_out, z_in, z_out, Ebv_in, Ebv_out
-
-def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cutoff, acc):
+    if Ebv_fitting:
+        return F_in, F_out, beta_in, beta_out, z_in, z_out, Ebv_in, Ebv_out
+        
+    return F_in, F_out, beta_in, beta_out, z_in, z_out
+    
+def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cutoff, acc, Ebv_fitting=True):
     ##Method creates an input vs output redshift density plot to visualize 
      #results. Determines base completeness(of all high-z GRBs how many are 
      #correctly identified as high-z), purity(of all low-z GRBs, how many are
@@ -97,8 +101,12 @@ def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cut
     
     #Import relevant results (for this plot we are only interested in the input
      #and output redshift)
-    _, _, _, _, z_in, z_out, _, _ = import_results(num, walkers, save_string)
+    if Ebv_fitting:
+        _, _, _, _, z_in, z_out, _, _ = import_results(num, walkers, save_string, Ebv_fitting=Ebv_fitting)
     
+    else:
+        _, _, _, _, z_in, z_out = import_results(num, walkers, save_string, Ebv_fitting=Ebv_fitting)
+        
     #Determine highest redshift input or output to determine redshift range
     
     zin_max = np.amax(z_in)
@@ -124,7 +132,7 @@ def input_output_density_plot(num, walkers, filter_edges, save_string, highz_cut
     #Show where input redshift matches output redshift
     plt.plot([0,z_range+1],[0,z_range+1], 'w-.')
     #Show accuracy ranges
-    plt.plot([0,z_range+1],[0, z_range+1*(1-acc)], 'w:', [0,z_range+1],[0,z_range+1*(1 + acc)], 'w:')
+    plt.plot([0,z_range+1],[0, (z_range+1)*(1-acc)], 'w:', [0,z_range+1],[0,(z_range+1)*(1 + acc)], 'w:')
     #Show band edges
     for i in range(len(associated_redshift)):
         plt.plot([associated_redshift[i], associated_redshift[i]], [0,z_range+1], 'w--')

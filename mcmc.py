@@ -182,6 +182,9 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
         #Plot spectrum associated with the final position of each walker
         plt.plot(lam_obs, spectrum, "c-", alpha = 0.3)
     
+    #Axes labels
+    plt.xlabel(r"Observed Wavelength ($\mu$Jy)")
+    plt.ylabel(r"Flux ($\mu$Jy)")
     #Save
     plt.savefig(save_string+"_walker_plot.png")
     plt.show()

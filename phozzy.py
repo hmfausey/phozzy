@@ -97,16 +97,28 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
         y = filter_obs[i]
         yerr = uncertainties[i]
         #Initial guess will be starting point for MCMC method
-        initial_guess = initial_guesses[i]
-        #Keep input parameters for this run to compare to results later
-        GRB_param_arr = GRB_params[i]
-        
+        if num>1:
+            #y values and y errors will be the filter observations and filter
+             #observation uncertainties respectively
+            y = filter_obs[i]
+            yerr = uncertainties[i]
+            #Initial guess will be starting point for MCMC method
+            initial_guess = initial_guesses[i]
+            #Keep input parameters for this run to compare to results later
+            GRB_param_arr = GRB_params[i]
+        else:
+            #Workaround for if only running for one GRB (indexing error)
+            y = filter_obs
+            yerr = uncertainties
+            initial_guess = initial_guesses
+            GRB_param_arr = GRB_params
+
         #Run the MCMC fitting method
         mcmc.mcmc(x, y, yerr, initial_guess, GRB_param_arr, result_string, filter_edges, nwalkers=nwalkers, burnin=burnin, produc=produc, extinction_law = extinction_law, z_prior = z_prior, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, upper_limit=Ebv_upper_limit, parallel = parallel, cpu_num = cpu_num)
 
     #Setup string for saving the analysis results
     analysis_string = save_string+"_results"
     #Run the analysis
-    analysis.input_output_density_plot(num, nwalkers, filter_edges, analysis_string, highz_threshold, acc)
+    analysis.input_output_density_plot(num, nwalkers, filter_edges, analysis_string, highz_threshold, acc, Ebv_fitting=Ebv_fitting)
 
     return None
