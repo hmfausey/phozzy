@@ -28,7 +28,7 @@ import analysis
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
+def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, flux_input = 'kann', parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
     ##The main function for running the entire simulation with desired number 
      #of runs, filter edges, parameter inputs and priors, uncertainty,
      #instrument noise, etc.
@@ -56,6 +56,13 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
           #'basic', and 'clever'. (default 'clever')
          #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
           #parameter or not. (default True)
+         #Ebv_upper_limit -- int, specifies whether the user would like upper 
+          #limits applied to the evolving extinction prior and which one to 
+          #use. 0 corresponds to no upper limit while 1 and 2 correspond to 
+          #upper limit 1 (less constraining) and upper limit 2 (more 
+          #constraining) from the paper (see for more details)
+         #flux_input -- string, desired flux input distribution. Options are
+          #'kann' (based on Kann et al. 2024), and 'basic' (default 'kann')
          #parallel -- bool, indicates whether the user would like to
           #parellalize the code. (default False)
          #cpu_num -- int, number of CPUs to be used when parellalizing the 
@@ -71,7 +78,7 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
      #values for each GRB, and uncertainties for each photometric band
      #measurement. The files holding this information are saved to the current
      #working directory
-    make_data.build_set(num, filter_edges, save_string, extinction_law = extinction_law, uncertainty = uncertainty, sig_noise = sig_noise, z_input = z_input, z_prior = z_prior, Ebv_input = Ebv_input, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, upper_limit=Ebv_upper_limit)
+    make_data.build_set(num, filter_edges, save_string, extinction_law = extinction_law, uncertainty = uncertainty, sig_noise = sig_noise, z_input = z_input, z_prior = z_prior, Ebv_input = Ebv_input, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, flux_input=flux_input, upper_limit=Ebv_upper_limit)
     
     
     #Load the data back in

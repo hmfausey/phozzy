@@ -28,7 +28,7 @@ import d_L_calc as dcal
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0):
+def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, flux_input = 'kann', upper_limit = 0):
     ##Saves a set of GRB parameters, the corresponding photometric band 
      #measurements (with error), uncertainties, and initial guesses to be used
      #later for fitting and analysis. Photometric band measurements are
@@ -58,6 +58,8 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertaint
           #'basic', and 'evolving'. (default 'evolving')
          #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
           #parameter or not. (default True)
+         #flux_input -- string, desired flux input distribution. Options are
+          #'kann' (based on Kann et al. 2024), and 'basic' (default 'kann')
          #upper_limit -- int, specifies whether the user would like upper limits
           #applied to the evolving extinction prior and which one to use. 0 
           #corresponds to no upper limit while 1 and 2 correspond to upper
@@ -74,9 +76,11 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertaint
         #Determine if there are 3 or 4 free parameters
         initial_guesses = np.zeros((num, 4))
         GRB_params = np.zeros((num,4))
-    else:
+    elif Ebv_fitting == False:
         initial_guesses = np.zeros((num, 3))
         GRB_params = np.zeros((num, 3))
+    else:
+        raise Exception("Ebv_fitting must be a boolean (True or False)")
     
    #For flux distribution
     m = 6.18
@@ -102,12 +106,16 @@ def build_set(num, filter_edges, save_string, extinction_law = 'smc', uncertaint
         
         zguess = random.uniform(0, 20)
         
-        #Get F_0 value(depends on z)
-         #Pull from approximate flux distribution at z=10 and adjust for actual
-          #redshift using ratio of luminosity distances
-
-        F10 = np.exp(random.gauss(m,s))
-        Fval = F10 * (((dcal.d_L(10))**2)/((dcal.d_L(zval))**2))
+        if flux_input == 'kann':
+            #Get F_0 value(depends on z)
+            #Pull from approximate flux distribution at z=10 and adjust for actual
+             #redshift using ratio of luminosity distances
+            F10 = np.exp(random.gauss(m,s))
+            Fval = F10 * (((dcal.d_L(10))**2)/((dcal.d_L(zval))**2))
+        elif flux_input == 'basic':
+            Fval = random.gauss(sig_noise*300, np.sqrt(sig_noise*100))
+        else:
+            raise Exception("Invalid flux input distribution. Choices are 'kann' or 'basic'.")
        
         #Get value for E_{b-v} if applicable(depends on z)
         if Ebv_fitting:
