@@ -51,9 +51,9 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
          #z_prior -- string, desired redshift prior. Options are 'uniform' or
           #'expected'. 'uniform' is the default and is highly suggested
          #Ebv_input -- string, desired input E_{b-v} distribution. Options are
-          #'uniform', 'basic', and 'clever'. (default 'clever')
+          #'uniform', 'basic', and 'evolving'. (default 'evolving')
          #Ebv_prior -- string, desired E_{b-v} prior. Options are 'uniform', 
-          #'basic', and 'clever'. (default 'clever')
+          #'basic', and 'evolving'. (default 'evolving')
          #Ebv_fitting -- boolean, determines whether E_{b-v} is a free 
           #parameter or not. (default True)
          #Ebv_upper_limit -- int, specifies whether the user would like upper 
