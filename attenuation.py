@@ -111,7 +111,7 @@ def teff_below_LLS(lam_obs, z):
     teff_LLS_array = np.zeros(len(lam_obs))
     
     i = 0   #initialize index for while loop
-    while lam_obs[i] < LYMAN_L*(1+z):
+    while ((lam_obs[i] < LYMAN_L*(1+z)) and (i < len(lam_obs)-1)):
         lam = lam_obs[i]
         
         #Break equation 7 into smaller terms
@@ -166,7 +166,7 @@ def teff_below_ISM(lam_obs, z):
     teff_IGM_array = np.zeros(len(lam_obs))
     
     i=0 
-    while(lam_obs[i] < LYMAN_L*(1+z)):
+    while((lam_obs[i] < LYMAN_L*(1+z)) and (i < len(lam_obs) - 1)):
         lam = lam_obs[i]
         z_L = lam/(LYMAN_L) - 1 #As defined above equation 5 in Meiksin(2006)
         
