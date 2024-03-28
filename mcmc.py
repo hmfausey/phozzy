@@ -323,7 +323,7 @@ def lnprior(params, z_prior, Ebv_prior, Ebv_fitting, upper_limit):
                     if upper_limit == 1 or upper_limit==2:
                         if E_bv > 1.02:
                             return -np.inf
-                elif z > 4:
+                elif z >= 4:
                     constant = 36.2
                     if E_bv > 0.17 and upper_limit==2:
                         return -np.inf
