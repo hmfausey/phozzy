@@ -28,14 +28,17 @@ import analysis
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, flux_input = 'kann', parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
+def phozzy(num, filter_edges, save_string, overWrite_initial_guess = True, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, flux_input = 'kann', parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
     ##The main function for running the entire simulation with desired number 
      #of runs, filter edges, parameter inputs and priors, uncertainty,
      #instrument noise, etc.
      #Inputs:
          #num -- int, number of runs
          #filter_edges -- numpy array, edges of all filters
-         #save_string -- desired string for all input and output data
+         #save_string -- string, desired string for all input and output data
+         #overWrite_initial_guess -- boolean. If True, the walkers will be 
+          #scattered across parameter space. If False, a randomly selected
+          #initial guess will be used for all walkers (default True)
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
           #cloud) or 'mw' (for milky way). 'smc' default
@@ -121,7 +124,7 @@ def phozzy(num, filter_edges, save_string, extinction_law = 'smc', uncertainty =
             GRB_param_arr = GRB_params
 
         #Run the MCMC fitting method
-        mcmc.mcmc(x, y, yerr, initial_guess, GRB_param_arr, result_string, filter_edges, nwalkers=nwalkers, burnin=burnin, produc=produc, extinction_law = extinction_law, z_prior = z_prior, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, upper_limit=Ebv_upper_limit, parallel = parallel, cpu_num = cpu_num)
+        mcmc.mcmc(x, y, yerr, initial_guess, GRB_param_arr, result_string, filter_edges, overWrite_initial_guess = overWrite_initial_guess, nwalkers=nwalkers, burnin=burnin, produc=produc, extinction_law = extinction_law, z_prior = z_prior, Ebv_prior = Ebv_prior, Ebv_fitting = Ebv_fitting, upper_limit=Ebv_upper_limit, parallel = parallel, cpu_num = cpu_num)
 
     #Setup string for saving the analysis results
     analysis_string = save_string+"_results"

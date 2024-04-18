@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count())):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, overWrite_initial_guess = True, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -54,7 +54,10 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
          #Used for plotting and comparison purposes
         #save_string -- desired string for all input and output data
         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
-         #each filter in order 
+         #each filter in order
+        #overWrite_initial_guess -- boolean. If True, the walkers will be 
+         #scattered across parameter space. If False, a randomly selected
+         #initial guess will be used for all walkers (default True)
         #nwalkers -- int, the number of walkers used by the MCMC fitting method
          #(default 50)
         #burnin -- int, number of steps in the burn-in phase (default 250)
@@ -88,7 +91,21 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
     #dimensions set to number of parameters
     ndim = len(initial_guess)
     #perturb initial position of each walker
-    p0 = [np.array(initial_guess) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
+    if overWrite_initial_guess:
+        Fguess = initial_guess[0]
+        betaguess = initial_guess[1]
+        if Ebv_fitting:
+            #put 2 walkers at each combo of z and Ebv guesses, with some small
+             #perturbation
+            Ebv_guesses = [0.05, 0.1, 0.5, 1, 3]
+            z_guesses = [2, 5, 8, 13, 18]
+            p0 = [np.array([Fguess, betaguess, z_guesses[int(i/10)], 0.05]) + 1e-3 * np.random.randn(ndim) for i in range(nwalkers)]
+        else:
+            #put 10 walkers at each z guess, with some small perturbation
+            z_guesses = [2, 5, 8, 13, 18]
+            p0 = [np.array([Fguess, betaguess, z_guesses[int(i/10)]]) + 1e-3 * np.random.randn(ndim) for i in range(nwalkers)]
+    else:
+        p0 = [np.array(initial_guess) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
     
     #Determine whether Ebv is a fitting parameter
     if Ebv_fitting:
@@ -116,6 +133,14 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
             print("Running burn-in...")
             p0, _, _ = sampler.run_mcmc(p0, burnin)
             
+            xaxis = np.arange(burnin)
+            for i in range(ndim):
+                for j in range(nwalkers):
+                    plt.plot(xaxis, sampler.chain[j, :, i])
+                plt.title("Paramter "+param_names[i]+" burnin")
+                plt.savefig(save_string+"_"+param_names[i]+"_burnin.png")
+                plt.close()
+            
             sampler.reset()
         
             print("Running production...")
@@ -125,6 +150,14 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
             
         print("Running burn-in...")
         p0, _, _ = sampler.run_mcmc(p0, burnin)
+        
+        xaxis = np.arange(burnin)
+        for i in range(ndim):
+            for j in range(nwalkers):
+                plt.plot(xaxis, sampler.chain[j, :, i])
+            plt.title("Paramter "+param_names[i]+" burn-in")
+            plt.savefig(save_string+"_"+param_names[i]+"_burnin.png")
+            plt.close()
         
         sampler.reset()
     
@@ -138,15 +171,9 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
     for i in range(ndim):
         for j in range(nwalkers):
             plt.plot(xaxis, sampler.chain[j, :, i])
-        plt.title("Paramter "+param_names[i])
-        plt.savefig(save_string+"_"+param_names[i]+".png")
+        plt.title("Paramter "+param_names[i]+" production")
+        plt.savefig(save_string+"_"+param_names[i]+"_produc.png")
         plt.close()
-    
-    #plot photometric band measurements with error bars along with the original 
-     #GRB spectrum
-    plt.errorbar(x, y, yerr = yerr, fmt = "ko", capsize=0)
-    lam_obs, spectrum = build_spectrum.build(filter_edges, f_real, beta_real, z_real, Ebv_real, extinction_law=extinction_law)
-    plt.plot(lam_obs, spectrum, "k-")
     
     #Initialize 2-D array for storing parameter results and true parameter 
      #values
@@ -181,6 +208,12 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, nwalk
         
         #Plot spectrum associated with the final position of each walker
         plt.plot(lam_obs, spectrum, "c-", alpha = 0.3)
+    
+    #plot photometric band measurements with error bars along with the original 
+     #GRB spectrum
+    plt.errorbar(x, y, yerr = yerr, fmt = "ko", capsize=0)
+    lam_obs, spectrum = build_spectrum.build(filter_edges, f_real, beta_real, z_real, Ebv_real, extinction_law=extinction_law)
+    plt.plot(lam_obs, spectrum, "k-")
     
     #Axes labels
     plt.xlabel(r"Observed Wavelength ($\mu$Jy)")
