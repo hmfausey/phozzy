@@ -28,7 +28,7 @@ import analysis
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def phozzy(num, filter_edges, save_string, overWrite_initial_guess = True, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, flux_input = 'kann', parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
+def phozzy(num, filter_edges, save_string, overWrite_initial_guess = False, extinction_law = 'smc', uncertainty = 0.05, sig_noise = 3, nwalkers = 50, burnin = 250, produc=500, z_input = 'uniform', z_prior = 'uniform', Ebv_input = 'evolving', Ebv_prior = 'evolving', Ebv_fitting = True, Ebv_upper_limit = 0, flux_input = 'kann', parallel = False, cpu_num = int(3/4*os.cpu_count()), highz_threshold = 5, acc = 0.1):
     ##The main function for running the entire simulation with desired number 
      #of runs, filter edges, parameter inputs and priors, uncertainty,
      #instrument noise, etc.
@@ -37,8 +37,10 @@ def phozzy(num, filter_edges, save_string, overWrite_initial_guess = True, extin
          #filter_edges -- numpy array, edges of all filters
          #save_string -- string, desired string for all input and output data
          #overWrite_initial_guess -- boolean. If True, the walkers will be 
-          #scattered across parameter space. If False, a randomly selected
-          #initial guess will be used for all walkers (default True)
+          #scattered across parameter space for the z and E_bv parameters. If 
+          #False, a randomly selected initial guess will be used for all walkers. 
+          #The inital guess will be recorded in Initial_guesses_*.txt (default 
+          #False)
          #extinction_law -- string, extinction law model to be used. Choices
           #are 'smc' (for small magellenic cloud), 'lmc' (for large magellenic
           #cloud) or 'mw' (for milky way). 'smc' default

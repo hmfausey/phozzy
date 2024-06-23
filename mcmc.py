@@ -38,7 +38,7 @@ PI = np.pi
 ###################################FUNCTIONS##################################
 ##############################################################################
 
-def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, overWrite_initial_guess = True, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count())):
+def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, overWrite_initial_guess = False, nwalkers=50, burnin=250, produc=500, extinction_law = 'smc', z_prior = 'uniform', Ebv_prior = 'evolving', Ebv_fitting = True, upper_limit = 0, parallel = False, cpu_num = int(3/4*os.cpu_count())):
    ##Performs a Markov-Chain Monte-Carlo fitting method for a set of simulated
     #GRB photometric band measurements and uncertainties, records the final
     #parameter results, and saves them to a file
@@ -56,8 +56,10 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, overW
         #filter_edges -- 2D numpy array, contains the upper and lower edges of 
          #each filter in order
         #overWrite_initial_guess -- boolean. If True, the walkers will be 
-         #scattered across parameter space. If False, a randomly selected
-         #initial guess will be used for all walkers (default True)
+         #scattered across parameter space for the z and E_bv parameters. If 
+         #False, a randomly selected initial guess will be used for all walkers. 
+         #The inital guess will be recorded in Initial_guesses_*.txt (default 
+         #False)
         #nwalkers -- int, the number of walkers used by the MCMC fitting method
          #(default 50)
         #burnin -- int, number of steps in the burn-in phase (default 250)
@@ -99,10 +101,11 @@ def mcmc(x, y, yerr, initial_guess, GRB_params, save_string, filter_edges, overW
              #perturbation
             Ebv_guesses = [0.05, 0.1, 0.5, 1, 3]
             z_guesses = [2, 5, 8, 13, 18]
-            p0 = [np.array([Fguess, betaguess, z_guesses[int(i/10)], 0.05]) + 1e-3 * np.random.randn(ndim) for i in range(nwalkers)]
+            p0 = [np.array([Fguess, betaguess, z_guesses[int(i/10)], Ebv_guesses[int((i%10)/2)]]) + 1e-3 * np.random.randn(ndim) for i in range(nwalkers)]
         else:
             #put 10 walkers at each z guess, with some small perturbation
             z_guesses = [2, 5, 8, 13, 18]
+            
             p0 = [np.array([Fguess, betaguess, z_guesses[int(i/10)]]) + 1e-3 * np.random.randn(ndim) for i in range(nwalkers)]
     else:
         p0 = [np.array(initial_guess) + 1e-5 * np.random.randn(ndim) for i in range(nwalkers)]
