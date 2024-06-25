@@ -6,13 +6,14 @@ Created on Tue Jun 25 14:23:06 2024
 @author: hmfausey
 """
 
+
 import pytest
 import numpy as np
 import sys
-
 sys.path.append("../")
 
 import power_law as pl
+
 
 
 def test_power_law():
