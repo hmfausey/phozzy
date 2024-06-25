@@ -26,8 +26,8 @@ if __name__ == "__main__":
     save_string = 'test_run'
     
     #Number of GRBs to be simulated and fit
-    nGRBs = 3
+    nGRBs = 500
     
     #If you want to run the code in parallel, set parallel=True in the phozzy
      #function call
-    phozzy.phozzy(nGRBs, filter_edges, save_string, parallel = True, nwalkers=50, burnin=50, produc=100, overWrite_initial_guess = True)
+    phozzy.phozzy(nGRBs, filter_edges, save_string, parallel = True, nwalkers=50, burnin=250, produc=500, overWrite_initial_guess = True)
