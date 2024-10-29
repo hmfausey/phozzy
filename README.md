@@ -1,7 +1,7 @@
-# 'phozzy'
+# phozzy
 'phozzy' is a package designed for simulation and fitting of photometric band measurements to estimate an instruments expected performance for accurately retrieving the redshift of a GRB. It allows the user to input any number of bands, a desired uncertainty and instrument noise, extinction law, parameter input and prior distributions, high-redshift cutoffs, and desired redshift accuracies, so it can be applied to a range of instruments and scenarios. Individual modules can be used for implementing intergalactic attenuation and extinction, creating spectra, and determining photometric band measurements. The key functions of each module and their uses are explained below.
 
-If you make use of this package please cite Fausey et al., 2023 ([https://doi.org/10.48550/arXiv.2310.03093](https://academic.oup.com/mnras/article/526/3/4599/7289245#421711247))
+If you make use of this package please cite Fausey et al., 2023 (https://academic.oup.com/mnras/article/526/3/4599/7289245#421711247)
 
 ## power_law
 The power_law module contains two functions. Both return a power law based on a normalization and spectral index, but one takes emitted wavelengths to create the spectrum, and the other takes observed wavelengths.
