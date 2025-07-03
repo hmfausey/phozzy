@@ -106,7 +106,7 @@ def build_set(
     while i < num:
         # Create GRB parameters and initial guesses for the desired number of
         # samples
-
+        print(i)
         # Get values for beta
         betaval = random.gauss(0.7, 0.2)
         betaguess = random.gauss(0.7, 0.2)

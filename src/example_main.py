@@ -20,12 +20,16 @@ if __name__ == "__main__":
     ##Define parameters for the simulation
 
     # Edges of photometric bands
+    '''
     filter_edges = np.array(
         [[0.5, 0.64], [0.64, 0.87], [0.87, 1.2], [1.2, 1.7], [1.7, 2.4]]
     )
-
+    '''
+    
+    filter_edges = np.array([[0.4 - 0.56], [0.56 - 0.81], [0.81 - 1.16], [1.16 - 1.68], [1.68 - 2.4]])
+    
     # string that will proceed all output files for this run
-    save_string = "test_run"
+    save_string = "lower5bands_EEEN"
 
     # Number of GRBs to be simulated and fit
     nGRBs = 500
@@ -40,5 +44,7 @@ if __name__ == "__main__":
         nwalkers=50,
         burnin=250,
         produc=500,
-        overWrite_initial_guess=True,
-    )
+        z_input='expected',
+        Ebv_input='evolving',
+        Ebv_prior= 'evolving'
+        )

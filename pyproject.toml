@@ -1,0 +1,25 @@
+[project]
+name = "phozzy"
+version = "1.0.0"
+dependencies = [
+"numpy",
+"scipy",
+"matplotlib",
+"emcee",
+"corner",
+]
+authors = [
+{name = "Hallie M Fausey", email = "hmfausey@gmail.com"},
+]
+maintainers = [
+{name = "Hallie M Fausey", email = "hmfausey@gmail.com"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[tool.pytest.ini.options]
+pythonpath = [
+"."
+]
+addopts = "--cov --cov-report term-missing"
+

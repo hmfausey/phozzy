@@ -47,9 +47,13 @@ def d_M(z):
 def d_C(z):
     ##Comoving distance (see Peebles 2013 (pgs 310-321) or
     # https://ned.ipac.caltech.edu/level5/Hogg/Hogg4.html)
-
     # Performs integration of E(z) over z, and then multiplies by d_H(the hubble
     # distance)
+     #Inputs:
+         #z - redshift
+     #Returns:
+         #dC - comoving distance in Mpc
+    
     step = 0.001
     zrange = np.arange(0, z + step, step)
     # For the function below, we set Omega_k to 0 since the Universe is
@@ -62,4 +66,5 @@ def d_C(z):
         # Using trapezoid rule
         integration += 0.5 * (func[i] + func[i + 1]) * step
 
-    return d_H * integration
+    dC = d_H * integration
+    return dC
