@@ -84,6 +84,7 @@ def build_set(
     # None
 
     # Initialize filter observations and uncertainties
+    
     filter_obs = np.zeros((num, len(filter_edges)))
     uncertainties = np.zeros((num, len(filter_edges)))
 
@@ -106,7 +107,7 @@ def build_set(
     while i < num:
         # Create GRB parameters and initial guesses for the desired number of
         # samples
-        print(i)
+
         # Get values for beta
         betaval = random.gauss(0.7, 0.2)
         betaguess = random.gauss(0.7, 0.2)
@@ -209,10 +210,13 @@ def build_set(
 
             # Save GRB original parameters
             OG_params = np.array([Fval, betaval, zval, Ebvval])
+
+            filter_centers = filters.get_filter_centers(filter_edges)
             # Build the spectrum based on the GRB parameters
             lam_obs, spectrum = build_spectrum.build(
                 filter_edges, Fval, betaval, zval, Ebvval, extinction_law=extinction_law
             )
+            
             # determine filter values (perturbed according to uncertainty) and
             # their corresponding error
             _, filter_vals, quadrature = filters.filter_observations(
@@ -223,9 +227,16 @@ def build_set(
                 uncertainty=uncertainty,
                 sig_noise=sig_noise,
             )
+            
             # If the reddest filter is above the 5-sigma detection limit, keep
             # the current filters and uncertainties
-            if filter_vals[-1] >= 5 * sig_noise:
+            if filter_vals[-1] >= (5 * sig_noise):
+                
+                plt.plot(lam_obs, spectrum, "k-")
+                plt.errorbar(filter_centers, filter_vals, yerr=quadrature, fmt="co")
+                plt.show()
+                plt.close()
+                
                 filter_obs[i, :] = filter_vals
                 uncertainties[i, :] = quadrature
 
@@ -258,11 +269,12 @@ def build_set(
             )
 
             if filter_vals[-1] >= 5 * sig_noise:
+                
                 plt.plot(lam_obs, spectrum, "k-")
                 plt.errorbar(filter_centers, filter_vals, yerr=quadrature, fmt="co")
                 plt.show()
                 plt.close()
-
+                
                 filter_obs[i, :] = filter_vals
                 uncertainties[i, :] = quadrature
 
@@ -283,8 +295,6 @@ def build_set(
     np.savetxt("GRB_parameters_" + save_string + ".txt", GRB_params, delimiter=" ")
     np.savetxt("Filter_observations_" + save_string + ".txt", filter_obs, delimiter=" ")
     np.savetxt("Uncertainties_" + save_string + ".txt", uncertainties, delimiter=" ")
-    np.savetxt(
-        "Initial_guesses_" + save_string + ".txt", initial_guesses, delimiter=" "
-    )
+    np.savetxt("Initial_guesses_" + save_string + ".txt", initial_guesses, delimiter=" ")
 
     return None

@@ -70,6 +70,9 @@ def filter_observations(
     # determines if it is in the current filter or split between two filters.
     # The flux contribution for the wavelength range being examined is then
     # added to the correct filter(s)
+    
+    '''I can definitely make this bit faster, but I dont have time right now'''
+    '''                    Something to come back to later                  '''
     for i in range(len(lam_obs) - 1):
         if filter_num == (len(filter_edges)):
             # If reached the long edge of the longest filter, stop
