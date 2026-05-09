@@ -33,25 +33,20 @@ def xsi(params, lam_emit):
     # xsi -- array, extinction profile at each corresponding wavelength for
     # the current extinction model and input parameters.
 
-    xsi = np.zeros(len(lam_emit))  # initialize array
+    ai = params[:, 0]
+    lami = params[:, 1]
+    bi = params[:, 2]
+    ni = params[:, 3]
 
-    for i in range(len(xsi)):
-        # Pei extinction curves rely on a sum over 6 terms each with a different
-        # set of parameters
-        for j in range(6):
-            # get parameters for current sum term
-            ai = params[j, 0]
-            lami = params[j, 1]
-            bi = params[j, 2]
-            ni = params[j, 3]
+    lam = lam_emit[:, None]   # shape (N,1)
 
-            # add current xsi term for current wavelength
-            xsi[i] += (ai) / (
-                (lam_emit[i] / lami) ** (ni) + (lami / lam_emit[i]) ** (ni) + bi
-            )
+    xsi_vals = ai / (
+        (lam / lami)**ni +
+        (lami / lam)**ni +
+        bi
+    )
 
-    return xsi
-
+    return xsi_vals.sum(axis=1)
 
 def A_lambda(xsi_vals, E_bv, R_v):
     ##Function determines A_lambda using xsi function
