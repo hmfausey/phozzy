@@ -33,6 +33,9 @@ if __name__ == "__main__":
 
     # Number of GRBs to be simulated and fit
     nGRBs = 500
+    zthreshold = 5
+    
+    acc = 0.2
 
     # If you want to run the code in parallel, set parallel=True in the phozzy
     # function call
@@ -46,7 +49,9 @@ if __name__ == "__main__":
         produc=500,
         z_input='expected',
         Ebv_input='evolving',
-        Ebv_prior= 'evolving'
+        Ebv_prior= 'evolving',
+        highz_threshold=zthreshold,
+        acc = acc
         )
     
     save_string = "lower5bands_UEEN"
@@ -66,5 +71,7 @@ if __name__ == "__main__":
         produc=500,
         z_input='uniform',
         Ebv_input='evolving',
-        Ebv_prior= 'evolving'
+        Ebv_prior= 'evolving',
+        highz_threshold = zthreshold,
+        acc = acc
         )

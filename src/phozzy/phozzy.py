@@ -105,6 +105,7 @@ def phozzy(
     # values for each GRB, and uncertainties for each photometric band
     # measurement. The files holding this information are saved to the current
     # working directory
+    '''
     make_data.build_set(
         num,
         filter_edges,
@@ -184,7 +185,7 @@ def phozzy(
             parallel=parallel,
             cpu_num=cpu_num,
         )
-
+    '''
     # Setup string for saving the analysis results
     analysis_string = save_string + "_results"
     # Run the analysis
